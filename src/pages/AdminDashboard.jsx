@@ -1,4 +1,5 @@
 import { useState, useEffect } from "react";
+import imageCompression from "browser-image-compression";
 import { obtenerServicios, crearNuevoServicio, editarPrecioServicio, toggleServicioDisponible, obtenerEstadoDias, editarEstadoDia, obtenerRangosDia, crearDisponibilidad, borrarRango, obtenerTurnosPendientes, obtenerTurnosConfirmados, confirmarTurno, rechazarTurno, subirImagenGaleria } from "../API/Service/Admin";
 
 export default function AdminDashboard() {
@@ -287,7 +288,7 @@ export default function AdminDashboard() {
     const file = e.target.files[0];
     if (file) {
       if (file.size > MAX_IMAGE_SIZE) {
-        setErrorGaleria(`Imagen muy pesada. El tamaño máximo permitido es de ${(MAX_IMAGE_SIZE / (1024 * 1024)).toFixed(0)}MB. Selecciona una imagen más pequeña.`);
+        setErrorGaleria(`La imagen excede el límite, debe ser de ${(MAX_IMAGE_SIZE / (1024 * 1024)).toFixed(0)} MB o menos.`);
         setImagenGaleria(null);
         e.target.value = ""; // Limpiar el input
       } else {
@@ -309,11 +310,22 @@ export default function AdminDashboard() {
 
     try {
       setLoadingGaleria(true);
+
+      const compressedImage = await imageCompression(imagenGaleria, {
+        maxSizeMB: 0.2,
+        maxWidthOrHeight: 800,
+        useWebWorker: true,
+      });
+
+      const fileToSend = compressedImage instanceof Blob && !(compressedImage instanceof File)
+        ? new File([compressedImage], imagenGaleria.name, { type: compressedImage.type || imagenGaleria.type })
+        : compressedImage;
+
       const formData = new FormData();
       formData.append("nombrePerro", nombrePerroGaleria);
       formData.append("servicioRealizado", servicioGaleria);
       formData.append("comentarios", comentariosGaleria || "");
-      formData.append("foto", imagenGaleria);
+      formData.append("foto", fileToSend);
 
       const response = await subirImagenGaleria(formData);
 
