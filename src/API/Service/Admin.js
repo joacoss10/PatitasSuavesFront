@@ -174,7 +174,7 @@ export async function subirImagenGaleria(formData) {
     
     // Usamos fetch directamente para evitar que apiFetch fuerce Content-Type: application/json
     // No establecemos Content-Type explícitamente; el navegador lo hará con el boundary correcto para FormData
-    const BASE_URL = "http://localhost:8080";
+    const BASE_URL = "https://patitassuaves-backend.onrender.com";
 
     const res = await fetch(`${BASE_URL}/Admin/galeria/subirGaleria`, {
       method: "POST",
